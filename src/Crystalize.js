@@ -61,32 +61,53 @@
             var runScript = function (scr, test) {
                 for (var ea in scr) {
                     for (var eb in scr[ea]) {
-                        if (eb !== "type") {
+                        if (eb !== "__type__") {
                             if (eb === "class") {
-                                $(scr[ea]["type"] + ea).addClass(scr[ea][eb]);
+                                $(scr[ea]["__type__"] + ea).addClass(scr[ea][eb]);
                             } else {
 
-                                internal.globalSettings.addAttr(scr[ea]["type"] + ea, eb, scr[ea][eb]);
+                                internal.globalSettings.addAttr(scr[ea]["__type__"] + ea, eb, scr[ea][eb]);
                             }
                         }
                     }
                 }
                 if (test === true) {
-                  //  var parame = internal.QueryDom(scr[ea]["type"] + ea, othat);
+                    for (var ea in CrystalMock) {
+                        for (var eb in CrystalMock[ea]) {
+                            if (eb !== "__type__") {
+                                internal.globalSettings.addAttr(CrystalMock[ea]["__type__"] + ea, app._api.xstal_mocked.n, "true");
+                                internal.globalSettings.setMockUpTable(CrystalMock[ea]["__type__"] + ea, eb, CrystalMock[ea][eb]);
+                            }
+                        }
+                    }
                 }
 
             }
-
-            if (CrystalScript !== undefined) {
-                if (typeof CrystalScript === "object") {
-                    app.script = CrystalScript;
-
-                    if (runonce === false) {
-                        runScript(app.script, true);
-                        runonce = true;
+          
+            //determine if object exist to fix- todo
+            try{
+                if (CrystalScript){
+                    if (Object.keys(CrystalScript).length !== 0) {
+                        app.script = CrystalScript;
+                        if (runonce === false) {
+                            runonce = true;
+                            try{
+                                if (CrystalMock) {
+                                    runScript(app.script,true);
+                                }
+                            }catch(ft){
+                                runScript(app.script, false);
+                            }
+                        }
                     }
                 }
             }
+            catch (fu) {
+                console.log("no config file supp");
+            }
+
+
+
             internal.executed = true;
 
             internal.globalSettings.whenAllStart();
@@ -113,44 +134,14 @@
 
                     success: function (data, textStatus, jqXHR) {
 
+                        internal.globalSettings.wholeInternalHandler(othat, "success", data, textStatus, jqXHR);
 
-                        var result = { status: "success", textStatus: textStatus, data: data, JqXHR: jqXHR };
-
-                        var clientHandlingMethod = internal.getAttr(othat, app._api.xstal_ajaxresult);
-
-                        if (clientHandlingMethod !== "") {
-
-                            if (clientHandlingMethod.contains("*")) {
-                                var q = clientHandlingMethod.replace("*", "");
-                                var s = q.split(",");
-                                internal.globalSettings.internalHandler(data, s[0], s[1], s[2], s[3]);
-                            } else {
-                                internal.globalSettings.evalAFunction(clientHandlingMethod, data);
-
-                            }
-                        }
-
-                        // console.log(result);
 
                     },
                     error: function (jqXHR, textStatus, data) {
 
+                        internal.globalSettings.wholeInternalHandler(othat, "error", data, textStatus, jqXHR);
 
-                        var result = { status: "error", textStatus: textStatus, data: data, JqXHR: jqXHR };
-
-                        var clientHandlingMethod = internal.getAttr(othat, app._api.xstal_ajaxresult);
-
-
-                        if (clientHandlingMethod !== "") {
-                            if (clientHandlingMethod.contains("*")) {
-                                var q = clientHandlingMethod.replace("*", "");
-                                var s = q.split(",");
-                                internal.globalSettings.internalHandler(data, s[0], s[1], s[2], s[3]);
-                            } else {
-                                internal.globalSettings.evalAFunction(clientHandlingMethod, "error  " + data);
-
-                            }
-                        }
                     }
 
                 };
@@ -191,8 +182,17 @@
                 var resp = {};//= MakeAjaxCall(a_obj, internal.globalSettings.dontMakeJQAjaxCall).responseText;
                 if (internal.globalSettings.dontMakeJQAjaxCall === false) {
                     internal.globalSettings.readyToAjaxcall();
-                    resp = $.ajax(a_obj);
-                    console.log(a_obj);
+                    // resp = $.ajax(a_obj);
+
+                    if (internal.getAttr(othat, app._api.xstal_mocked) === "false") {
+                        resp = internal.globalSettings.xmockajax(a_obj, true);
+                    } else {
+
+                          resp = internal.globalSettings.xmockajax(a_obj, false,othat,true);
+                    }
+
+                  
+
                 } else {
                     internal.conn = false;
                     resp = {
@@ -326,6 +326,10 @@
                 xstal_ajaxresult: {
                     n: "xstal-ajaxresult",
                     v: ""
+                },
+                xstal_mocked: {
+                    n: "xstal-mocked",
+                    v: "false"
                 }
 
 
@@ -348,6 +352,7 @@
             builder_open += '  ' + app._api.xstal_runonload.n + '="' + o.oxstal_runonload + '"  ';
             builder_open += '  ' + app._api.xstal_timeout.n + '="' + o.oxstal_timeout + '"  ';
             builder_open += '   ' + app._api.xstal_ajaxresult.n + '="' + o.oxstal_ajaxresult + '"   ';
+            builder_open += '   ' + app._api.xstal_mocked.n + '="' + o.xstal_mocked + '"   ';
             var builder_close = '  >' + o.obody + '</' + o.type + '  >';
 
             return builder_open + " " + builder_close;
@@ -371,11 +376,13 @@
             this.oxstal_runonload = app._api.xstal_runonload.v;
             this.oxstal_timeout = app._api.xstal_timeout.v;
             this.oxstal_ajaxresult = app._api.xstal_ajaxresult.v;
+            this.oxstal_mocked = app._api.xstal_mocked.v;
         };
         this.mockFunction = function (o) { };
         this.mockMock = function (o) {
             conn = true; // no mock ajax supplied
         };
+
         this.globalSettings = {
             dontMakeJQAjaxCall: false,
             forceSynchronousOnAllAjaxCalls: false,
@@ -392,8 +399,50 @@
             whenMockSet: within.mockFunction, //**
             whenEventMade: within.mockFunction, //**
             readyToAjaxcall: within.mockFunction, //**
+            mockLookUpTable: [],
+            setMockUpTable:function(or,on,ov){
+                internal.globalSettings.mockLookUpTable.push({ r: or, n: on, v: ov });
+            },
+            getMockFromMockUpTable:function(){
+    
+    },
+            xmockajax: function (o, usereal,ref, IsSuccess, re) {
+                if (usereal === true) {
+                    return $.ajax(o);
+                }
+                else {
+
+                   // mockParameter
+
+                    if (re === undefined) {
+                        re={};
+                     var x1=   internal.globalSettings.mockLookUpTable;
+                     var tots = x1.length;
+                     for (var it = 0; it < tots; it++)  {
+                         if (!$(ref).hasClass(x1[it].r.replace(".",""))) {
+
+                         }
+                         else if (!$(ref).attr("id") === (x1[it].r.replace("#", ""))) {
+
+                         } else {
+                             re[x1[it].n] = x1[it].v;
+                         }
+                     }
+                    }
+
+                    if (IsSuccess === true) {
+                        o.success( JSON.stringify(re), "", "");
+                    }
+                    else {
+                        o.error("", "", "");
+                    }
+                    return {
+                        response: JSON.stringify( re)
+                    };
+                }
+            },
             evalAFunction: function (x, y) {
-                eval("try{" + x + "('error  " + y + "');}catch(e){}");
+                eval("try{" + x + "('" + y + "');}catch(e){}");
             },
             alertFunction: function (o) {
                 alert(o);
@@ -401,24 +450,90 @@
             confirmFunction: function (o) {
                 return confirm(o);
             },
+            invokeDomManipFunction: function (a, b, c) {
+                $(a)[b](c);
+            },
+            wholeInternalHandler: function (othat, _status, _data, textStatus, jqXHR) {
+                var result = { status: _status, textStatus: textStatus, data: _data, JqXHR: jqXHR };
+
+                var clientHandlingMethod = internal.getAttr(othat, app._api.xstal_ajaxresult);
+
+                if (clientHandlingMethod !== "") {
+
+                    var alleach = clientHandlingMethod.split(";");
+                    var tots = alleach.length;
+                    for (var tie = 0; tie < tots; tie++) {
+                        var clientHandlingMethodi = alleach[tie];
+
+                        var q = clientHandlingMethodi.replace("*", "");
+                        var s = q.split(",");
+                        var o, x, y, z, w = "";
+                        o = _data; x = s[0]; y = s[1]; z = s[2]; w = s[3];
+
+
+
+
+                        if (clientHandlingMethodi.contains("*")) {
+                            internal.globalSettings.internalHandler(_data, s[0], s[1], s[2], s[3]);
+                        } else {
+
+                            if (_status === "error") {
+                                internal.globalSettings.evalAFunction(clientHandlingMethodi, _data);
+                            } else {
+
+                                internal.globalSettings.evalAFunction(clientHandlingMethodi, _data);
+                            }
+
+                        }
+
+
+
+
+                    }
+                }
+            },
             internalHandler: function (o, x, y, z, w) {
                 if (x !== undefined) {
                     if (x === "alert") {
-                        internal.globalSettings.Handlers.alertP(o, y, z);
+                        internal.globalSettings.Handlers.alertP(o, y, z, w);
                     } else if (x === "confirm") {
-                        internal.globalSettings.Handlers.confirmP(o, y, z);
+                        internal.globalSettings.Handlers.confirmP(o, y, z, w);
                     }
                     else if (x === "in") {
-                        internal.globalSettings.Handlers.inP(o, y, z);
+                        internal.globalSettings.Handlers.inP(o, y, z, w);
                     }
                 }
             },
             Handlers: {
                 alertP: function (o, y, z, w) {
-                    internal.globalSettings.alertFunction(o);
+
+                    if (y === undefined) {
+                        internal.globalSettings.alertFunction(o);
+                    } else
+                        if (y.contains("=")) {
+                            var ar = y.split("=");
+                            var ja = $.parseJSON(o);// this is a hacke
+
+                            internal.globalSettings.alertFunction(ja[ar[1]]);
+                        }
+
                 },
                 confirmP: function (o, y, z, w) {
-                    var c = internal.globalSettings.confirmFunction(o);
+                    var c = true;
+
+
+
+                    if (y !== undefined) {
+
+                        if (y.contains("=")) {
+                            var ar = y.split("=");
+                            var ja = $.parseJSON(o);// this is a hacke
+                            c = internal.globalSettings.confirmFunction(ja[ar[1]]);
+                        } else {
+                            c = internal.globalSettings.confirmFunction(o);
+                        }
+                    }
+
 
                     if (c === true) {
                         if (y !== undefined) {
@@ -428,11 +543,23 @@
                     } else if (z !== undefined) {
                         internal.globalSettings.evalAFunction(z, o);
                     }
+
                 },
+
                 inP: function (o, y, z, w) {
                     if (y !== undefined) {
                         if (z !== undefined) {
-                            $(y)[z](o);
+                            if (z.contains("=")) {
+                                var ar = z.split("=");
+                                var ja = $.parseJSON(o);
+
+                                internal.globalSettings.invokeDomManipFunction(y, ar[0], ja[ar[1]]);
+                                //   $(y)[ar[0]](ja[ar[1]]);
+
+                            } else {
+                                // $(y)[z](o);
+                                internal.globalSettings.invokeDomManipFunction(y, z, o);
+                            }
                         }
                     }
                 }
@@ -510,7 +637,6 @@
 
     app._api = new internal.CreateAPI().api;
 
-    console.log(this.CrystalScript);
     rootWin.Crystalize.begin("*");
 
 

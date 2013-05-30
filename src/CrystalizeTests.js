@@ -1,7 +1,7 @@
 //***************************************
 //test BEGINS==========================================================================================
 //***************************************
-var CrystalScript = "";
+
 TEST("Veryfy that the dafault global setting is correct", function () {
     Crystalize.reset();
 
@@ -34,6 +34,11 @@ TEST("Veryfy that the dafault global setting is correct", function () {
     OK(typeof setting.Handlers.alertP === "function", "internal request handler must have a alertP method");
     OK(typeof setting.Handlers.confirmP === "function", "internal request handler must have a confirmP method");
     OK(typeof setting.Handlers.inP === "function", "internal request handler must have a inP method");
+    OK(typeof  setting.xmockajax === "function", "internal must have a  xmockajax  method");
+    OK(typeof  setting.wholeInternalHandler=== "function", "internal  must have a  wholeInternalHandler  method");
+    OK(typeof  setting.internalHandler=== "function", "internal  must have a  internalHandler  method");
+    OK(typeof setting.invokeDomManipFunction === "function", "internal  must have a invokeDomManipFunction  method");
+
 });
 
 TEST("Verify that the default api html attribute is well implemented", function () {
@@ -57,6 +62,7 @@ TEST("Verify that the default api html attribute is well implemented", function 
     OK(api.xstal_runonload.n === "xstal-runonload", "api parameter name 'runonload' cannot be brocken brocken");
     OK(api.xstal_timeout.n === "xstal-timeout", "api parameter name 'timeout' cannot be brocken brocken");
     OK(api.xstal_ajaxresult.n === "xstal-ajaxresult", "api parameter name 'xstal_ajaxresult' cannot be brocken");
+    OK(api.xstal_mocked.n === "xstal-mocked", "api parameter name 'xstal_mocked' cannot be brocken");
 
 });
 
@@ -80,6 +86,7 @@ TEST("Verify that the default api html values is correct", function () {
     OK(api.xstal_runonload.v === "false", "api parameter  value 'runonload'  cannot be brocken brocken");
     OK(api.xstal_timeout.v === "2000", "api parameter  value 'timeout'  cannot be brocken brocken");
     OK(api.xstal_ajaxresult.v === "", "api parameter value 'xstal_ajaxresult' cannot be brocken");
+    OK(api.xstal_mocked.v === "false", "api parameter name 'xstal_mocked' cannot be brocken");
 
 
 });
@@ -814,7 +821,7 @@ TEST("when ajax has completed , if element has a callback function setup and is 
 });
 
 
-TEST("when ajax has completed , if element has a callback function setup and is *confirm,a,b then  confirmFunction must be called ", function () {
+TEST("when ajax has completed , if element has a callback function setup and is confirm,a,b then  confirmFunction must be called ", function () {
 
     Crystalize.reset($.mockjaxClear);
     var responseExpected = { "hello": "hello!" };
@@ -940,4 +947,178 @@ TEST("when there are more than one element in the dom the last element only must
     console.log(x3);
     console.log(x4);
 
+});
+
+
+TEST("testing various destination patterns 1 ", function () {
+
+    Crystalize.reset($.mockjaxClear);
+    var responseExpected =' { "a": "hello1!", "b": {"c": "hello3!", "d": "hello4!", "e": "hello5!"}, "f": "hello6!" }';
+    var spy = 0;
+    var x1 = 0;
+    var x2 = 0;
+    var x3 = 0;
+    var aa = "";
+    var bb = "";
+    var cc = "";
+    var mm = "";
+   
+    Crystalize.all({
+        xmockajax: function (o, usereal,IsSuccess,r) {
+            mm = 1;
+
+            r = responseExpected;
+
+               o.success(r,"","");
+               
+                return {
+                    request:o,
+                    response:r                    
+                };
+        },
+        resposeOfNoRequest: responseExpected,
+        evalAFunction: function (x, y) {
+            x1 = 1;
+        },
+        alertFunction: function (o) {
+            x2 = 1;
+        },
+        confirmFunction: function (o) {
+            x3 = 1;
+        },
+        invokeDomManipFunction: function (a,b,c) {
+            aa = a; bb = b; cc = c;
+        }
+    });
+
+    //applySpecialTestSettings(); 
+    //*alert,x=datareceived;*alert;*confirm,alert,confirm;
+    var selectors = "*in,.destination option,html=a;";
+    // selectors += "*in,body,prepend=datareceived;";
+    var domVar = '<div class="xstal-master" xstal-ajaxresult="' + selectors + '" xstal-isasync="false" xstal-test="false"  xstal-event="click" xstal-runonload="true" xstal-function="f" xstal-add="/handler1"  xstal-ret="pac=html" xstal-group="a" xstal-group-master="a">ManualDiv<div>';
+    arrangeManualTestStage(domVar);
+    //act:
+
+    Crystalize.begin("*");
+
+    //assertions:
+    OK(aa === ".destination option", 'when a dom manipulation pattern is specified, then the first parameter must be the dom selector specified ');
+    OK(bb === "html", 'when a dom manipulation pattern is specified, then the second parameter must be the jquery function specified ');
+    OK(cc === "hello1!", 'when a dom manipulation pattern is specified, then the third parameter must be data specified ');
+});
+
+
+TEST("testing various destination patterns 2", function () {
+
+    Crystalize.reset($.mockjaxClear);
+    var responseExpected = ' { "a": "hello1!", "b": {"c": "hello3!", "d": "hello4!", "e": "hello5!"}, "f": "hello6!" }';
+    var spy = 0;
+    var x1 = 0;
+    var x2 = 0;
+    var x3 = 0;
+    var aa = "";
+    var bb = "";
+    var cc = "";
+    var mm = "";
+
+    Crystalize.all({
+        xmockajax: function (o, usereal, IsSuccess, r) {
+            mm = 1;
+
+            r = responseExpected;
+
+            o.success(r, "", "");
+
+            return {
+                request: o,
+                response: r
+            };
+        },
+        resposeOfNoRequest: responseExpected,
+        evalAFunction: function (x, y) {
+            x1 = 1;
+        },
+        alertFunction: function (o) {
+            x2 = 1;
+        },
+        confirmFunction: function (o) {
+            x3 = 1;
+        },
+        invokeDomManipFunction: function (a, b, c) {
+            aa = a; bb = b; cc = c;
+        }
+    });
+
+    //applySpecialTestSettings(); 
+    //*alert,x=datareceived;*alert;*confirm,alert,confirm;
+    var selectors = "*in,body,prepend=b;";
+    // selectors += "*in,body,prepend=datareceived;";
+    var domVar = '<div class="xstal-master" xstal-ajaxresult="' + selectors + '" xstal-isasync="false" xstal-test="false"  xstal-event="click" xstal-runonload="true" xstal-function="f" xstal-add="/handler1"  xstal-ret="pac=html" xstal-group="a" xstal-group-master="a">ManualDiv<div>';
+    arrangeManualTestStage(domVar);
+    //act:
+
+    Crystalize.begin("*");
+
+    //assertions:
+    OK(aa === "body", 'when a dom manipulation pattern is specified, then the first parameter must be the dom selector specified ');
+    OK(bb === "prepend", 'when a dom manipulation pattern is specified, then the second parameter must be the jquery function specified ');
+    OK(cc.d ===  "hello4!", 'when a dom manipulation pattern is specified, then the third parameter must be data specified ');
+});
+
+
+TEST("testing various destination patterns 3 for id", function () {
+
+    Crystalize.reset($.mockjaxClear);
+    var responseExpected = ' { "a": "hello1!", "b": {"c": "hello3!", "d": "hello4!", "e": "hello5!"}, "f": "hello6!" }';
+    var spy = 0;
+    var x1 = 0;
+    var x2 = 0;
+    var x3 = 0;
+    var aa = "";
+    var bb = "";
+    var cc = "";
+    var mm = "";
+
+    Crystalize.all({
+        xmockajax: function (o, usereal, IsSuccess, r) {
+            mm = 1;
+
+            r = responseExpected;
+
+            o.success(r, "", "");
+
+            return {
+                request: o,
+                response: r
+            };
+        },
+        resposeOfNoRequest: responseExpected,
+        evalAFunction: function (x, y) {
+            x1 = 1;
+        },
+        alertFunction: function (o) {
+            x2 = 1;
+        },
+        confirmFunction: function (o) {
+            x3 = 1;
+        },
+        invokeDomManipFunction: function (a, b, c) {
+            aa = a; bb = b; cc = c;
+        }
+    });
+
+    //applySpecialTestSettings(); 
+    //*alert,x=datareceived;*alert;*confirm,alert,confirm;
+    var selectors = "*in,#ody,attr=f;";
+    // selectors += "*in,body,prepend=datareceived;";
+    var domVar = '<div class="xstal-master" xstal-ajaxresult="' + selectors + '" xstal-isasync="false" xstal-test="false"  xstal-event="click" xstal-runonload="true" xstal-function="f" xstal-add="/handler1"  xstal-ret="pac=html" xstal-group="a" xstal-group-master="a">ManualDiv<div>';
+    arrangeManualTestStage(domVar);
+    //act:
+
+    Crystalize.begin("*");
+
+    //assertions:
+    OK(aa === "#ody", 'when a dom manipulation pattern is specified, then the first parameter must be the dom selector specified ');
+    OK(bb === "attr", 'when a dom manipulation pattern is specified, then the second parameter must be the jquery function specified ');
+    OK(cc === "hello6!", 'when a dom manipulation pattern is specified, then the third parameter must be data specified ');
 });

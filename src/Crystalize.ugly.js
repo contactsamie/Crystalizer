@@ -1,5 +1,8 @@
 ﻿(function () {
+    var rootWin = this;
+    var runonce = false;
     this.Crystalize = {
+        script: {},
         result: [],
         conf: function () {
             return {
@@ -35,89 +38,104 @@
             app.result = []
         },
         begin: function (e) {
-            if (internal.executed === true) return null;
+            if (internal.executed === true) return;
+            var t = function (e, t) {
+                for (var n in e) {
+                    for (var r in e[n]) {
+                        if (r !== "__type__") {
+                            if (r === "class") {
+                                $(e[n]["__type__"] + n).addClass(e[n][r])
+                            } else {
+                                internal.globalSettings.addAttr(e[n]["__type__"] + n, r, e[n][r])
+                            }
+                        }
+                    }
+                }
+                if (t === true) {
+                    for (var n in CrystalMock) {
+                        for (var r in CrystalMock[n]) {
+                            if (r !== "__type__") {
+                                internal.globalSettings.addAttr(CrystalMock[n]["__type__"] + n, app._api.xstal_mocked.n, "true");
+                                internal.globalSettings.setMockUpTable(CrystalMock[n]["__type__"] + n, r, CrystalMock[n][r])
+                            }
+                        }
+                    }
+                }
+            };
+            try {
+                if (CrystalScript) {
+                    if (Object.keys(CrystalScript).length !== 0) {
+                        app.script = CrystalScript;
+                        if (runonce === false) {
+                            runonce = true;
+                            try {
+                                if (CrystalMock) {
+                                    t(app.script, true)
+                                }
+                            } catch (n) {
+                                t(app.script, false)
+                            }
+                        }
+                    }
+                }
+            } catch (r) {
+                console.log("no config file supp")
+            }
             internal.executed = true;
             internal.globalSettings.whenAllStart();
-            var t = function (t) {
-                var r = internal.getAttr(t, app._api.xstal_runonload);
+            var i = function (t) {
+                var n = internal.getAttr(t, app._api.xstal_runonload);
                 internal.globalSettings.whenEventInvocking();
-                var i = internal.QueryDom(e, t);
-                var s = {
+                var r = internal.QueryDom(e, t);
+                var i = {
                     async: internal.getAttr(t, app._api.xstal_isasync),
                     url: internal.getAttr(t, app._api.xstal_add),
                     data: {
-                        request: [internal.getAttr(t, app._api.xstal_function), i]
+                        request: [internal.getAttr(t, app._api.xstal_function), r]
                     },
                     contentType: internal.globalSettings.contentType,
                     dataType: internal.globalSettings.dataType,
                     type: internal.globalSettings.type,
                     timeout: parseInt(internal.getAttr(t, app._api.xstal_timeout), 10),
                     success: function (e, n, r) {
-                        var i = {
-                            status: "success",
-                            textStatus: n,
-                            data: e,
-                            JqXHR: r
-                        };
-                        var s = internal.getAttr(t, app._api.xstal_ajaxresult);
-                        if (s !== "") {
-                            if (s.contains("*")) {
-                                var o = s.replace("*", "");
-                                var u = o.split(",");
-                                internal.globalSettings.internalHandler(e, u[0], u[1], u[2], u[3])
-                            } else {
-                                internal.globalSettings.evalAFunction(s, e)
-                            }
-                        }
+                        internal.globalSettings.wholeInternalHandler(t, "success", e, n, r)
                     },
                     error: function (e, n, r) {
-                        var i = {
-                            status: "error",
-                            textStatus: n,
-                            data: r,
-                            JqXHR: e
-                        };
-                        var s = internal.getAttr(t, app._api.xstal_ajaxresult);
-                        if (s !== "") {
-                            if (s.contains("*")) {
-                                var o = s.replace("*", "");
-                                var u = o.split(",");
-                                internal.globalSettings.internalHandler(r, u[0], u[1], u[2], u[3])
-                            } else {
-                                internal.globalSettings.evalAFunction(s, "error  " + r)
-                            }
-                        }
+                        internal.globalSettings.wholeInternalHandler(t, "error", r, n, e)
                     }
                 };
                 if (internal.globalSettings.forceSynchronousOnAllAjaxCalls === true) {
-                    s.async = false
+                    i.async = false
                 } else {
-                    if (s.async === "true") {
-                        s.async = true
+                    if (i.async === "true") {
+                        i.async = true
                     } else {
-                        s.async = false
+                        i.async = false
                     }
                 }
                 var o = {};
                 o = new function () {
-                    this.async = s.async;
-                    this.url = s.url;
-                    this.responseTime = s.timeout;
-                    this.dataType = s.dataType;
-                    this.response = s.success;
+                    this.async = i.async;
+                    this.url = i.url;
+                    this.responseTime = i.timeout;
+                    this.dataType = i.dataType;
+                    this.response = i.success;
                     this.contentType = "text/json";
                     this.responseText = internal.globalSettings.resposeOfNoRequest
                 };
                 if (internal.globalSettings.forceMockAllAjaxCalls === true) {
-                    n(internal.globalSettings.MockingFxMethod, o)
+                    s(internal.globalSettings.MockingFxMethod, o)
                 } else if (internal.getAttr(t, app._api.xstal_test) === "true") {
-                    n(internal.globalSettings.MockingFxMethod, o)
+                    s(internal.globalSettings.MockingFxMethod, o)
                 }
                 var u = {};
                 if (internal.globalSettings.dontMakeJQAjaxCall === false) {
                     internal.globalSettings.readyToAjaxcall();
-                    u = $.ajax(s);
-                    console.log(s)
+                    if (internal.getAttr(t, app._api.xstal_mocked) === "false") {
+                        u = internal.globalSettings.xmockajax(i, true)
+                    } else {
+                        u = internal.globalSettings.xmockajax(i, false, t, true)
+                    }
                 } else {
                     internal.conn = false;
                     u = {
@@ -128,26 +146,27 @@
                 return {
                     response: u,
                     connection: internal.conn,
-                    ranOnLoad: r,
-                    assync: s.async,
+                    ranOnLoad: n,
+                    assync: i.async,
                     element: t,
-                    request: s,
+                    request: i,
                     settings: app.conf()
                 }
             };
-            var n = function (e, t) {
+            var s = function (e, t) {
                 internal.conn = false;
                 internal.globalSettings.whenMockSet();
                 e(t)
             };
-            var r = {};
+            var o = {};
             return function () {
                 $(app._api.xstal_master_class.v).each(function () {
                     internal.globalSettings.whenEachStart();
-                    $(this).on(internal.getAttr(this, app._api.xstal_event), function () {
-                        return t(this)
+                    $(this).on(internal.getAttr(this, app._api.xstal_event), function (e) {
+                        e.stopPropagation();
+                        return i(this)
                     });
-                    r = this;
+                    o = this;
                     internal.globalSettings.whenEventMade();
                     var e = false;
                     if (internal.globalSettings.execAllEventOnLoad === true) {
@@ -156,7 +175,7 @@
                         e = true
                     }
                     if (e === true) {
-                        app.result.push(t(this))
+                        app.result.push(i(this))
                     }
                     internal.globalSettings.whenEachStop()
                 });
@@ -165,7 +184,7 @@
             }()
         }
     };
-    var app = this.Crystalize;
+    var app = rootWin.Crystalize;
     var InternalFactory = function (that) {
         that.app = that.Crystalize;
         var within = this;
@@ -234,6 +253,10 @@
                 xstal_ajaxresult: {
                     n: "xstal-ajaxresult",
                     v: ""
+                },
+                xstal_mocked: {
+                    n: "xstal-mocked",
+                    v: "false"
                 }
             }
         };
@@ -252,6 +275,7 @@
             t += "  " + app._api.xstal_runonload.n + '="' + e.oxstal_runonload + '"  ';
             t += "  " + app._api.xstal_timeout.n + '="' + e.oxstal_timeout + '"  ';
             t += "   " + app._api.xstal_ajaxresult.n + '="' + e.oxstal_ajaxresult + '"   ';
+            t += "   " + app._api.xstal_mocked.n + '="' + e.xstal_mocked + '"   ';
             var n = "  >" + e.obody + "</" + e.type + "  >";
             return t + " " + n
         };
@@ -271,7 +295,8 @@
             this.oxstal_pos = app._api.xstal_pos.v;
             this.oxstal_runonload = app._api.xstal_runonload.v;
             this.oxstal_timeout = app._api.xstal_timeout.v;
-            this.oxstal_ajaxresult = app._api.xstal_ajaxresult.v
+            this.oxstal_ajaxresult = app._api.xstal_ajaxresult.v;
+            this.oxstal_mocked = app._api.xstal_mocked.v
         };
         this.mockFunction = function (e) { };
         this.mockMock = function (e) {
@@ -293,8 +318,41 @@
             whenMockSet: within.mockFunction,
             whenEventMade: within.mockFunction,
             readyToAjaxcall: within.mockFunction,
+            mockLookUpTable: [],
+            setMockUpTable: function (e, t, n) {
+                internal.globalSettings.mockLookUpTable.push({
+                    r: e,
+                    n: t,
+                    v: n
+                })
+            },
+            getMockFromMockUpTable: function () { },
+            xmockajax: function (e, t, n, r, i) {
+                if (t === true) {
+                    return $.ajax(e)
+                } else {
+                    if (i === undefined) {
+                        i = {};
+                        var s = internal.globalSettings.mockLookUpTable;
+                        var o = s.length;
+                        for (var u = 0; u < o; u++) {
+                            if (!$(n).hasClass(s[u].r.replace(".", ""))) { } else if (!$(n).attr("id") === s[u].r.replace("#", "")) { } else {
+                                i[s[u].n] = s[u].v
+                            }
+                        }
+                    }
+                    if (r === true) {
+                        e.success(JSON.stringify(i), "", "")
+                    } else {
+                        e.error("", "", "")
+                    }
+                    return {
+                        response: JSON.stringify(i)
+                    }
+                }
+            },
             evalAFunction: function (x, y) {
-                eval("try{" + x + "('error  " + y + "');}catch(e){}")
+                eval("try{" + x + "('" + y + "');}catch(e){}")
             },
             alertFunction: function (e) {
                 alert(e)
@@ -302,23 +360,74 @@
             confirmFunction: function (e) {
                 return confirm(e)
             },
+            invokeDomManipFunction: function (e, t, n) {
+                $(e)[t](n)
+            },
+            wholeInternalHandler: function (e, t, n, r, i) {
+                var s = {
+                    status: t,
+                    textStatus: r,
+                    data: n,
+                    JqXHR: i
+                };
+                var o = internal.getAttr(e, app._api.xstal_ajaxresult);
+                if (o !== "") {
+                    var u = o.split(";");
+                    var a = u.length;
+                    for (var f = 0; f < a; f++) {
+                        var l = u[f];
+                        var c = l.replace("*", "");
+                        var h = c.split(",");
+                        var p, d, v, m, g = "";
+                        p = n;
+                        d = h[0];
+                        v = h[1];
+                        m = h[2];
+                        g = h[3];
+                        if (l.contains("*")) {
+                            internal.globalSettings.internalHandler(n, h[0], h[1], h[2], h[3])
+                        } else {
+                            if (t === "error") {
+                                internal.globalSettings.evalAFunction(l, n)
+                            } else {
+                                internal.globalSettings.evalAFunction(l, n)
+                            }
+                        }
+                    }
+                }
+            },
             internalHandler: function (e, t, n, r, i) {
                 if (t !== undefined) {
                     if (t === "alert") {
-                        internal.globalSettings.Handlers.alertP(e, n, r)
+                        internal.globalSettings.Handlers.alertP(e, n, r, i)
                     } else if (t === "confirm") {
-                        internal.globalSettings.Handlers.confirmP(e, n, r)
+                        internal.globalSettings.Handlers.confirmP(e, n, r, i)
                     } else if (t === "in") {
-                        internal.globalSettings.Handlers.inP(e, n, r)
+                        internal.globalSettings.Handlers.inP(e, n, r, i)
                     }
                 }
             },
             Handlers: {
                 alertP: function (e, t, n, r) {
-                    internal.globalSettings.alertFunction(e)
+                    if (t === undefined) {
+                        internal.globalSettings.alertFunction(e)
+                    } else if (t.contains("=")) {
+                        var i = t.split("=");
+                        var s = $.parseJSON(e);
+                        internal.globalSettings.alertFunction(s[i[1]])
+                    }
                 },
                 confirmP: function (e, t, n, r) {
-                    var i = internal.globalSettings.confirmFunction(e);
+                    var i = true;
+                    if (t !== undefined) {
+                        if (t.contains("=")) {
+                            var s = t.split("=");
+                            var o = $.parseJSON(e);
+                            i = internal.globalSettings.confirmFunction(o[s[1]])
+                        } else {
+                            i = internal.globalSettings.confirmFunction(e)
+                        }
+                    }
                     if (i === true) {
                         if (t !== undefined) {
                             internal.globalSettings.evalAFunction(t, e)
@@ -330,10 +439,19 @@
                 inP: function (e, t, n, r) {
                     if (t !== undefined) {
                         if (n !== undefined) {
-                            $(t)[n](e)
+                            if (n.contains("=")) {
+                                var i = n.split("=");
+                                var s = $.parseJSON(e);
+                                internal.globalSettings.invokeDomManipFunction(t, i[0], s[i[1]])
+                            } else {
+                                internal.globalSettings.invokeDomManipFunction(t, n, e)
+                            }
                         }
                     }
                 }
+            },
+            addAttr: function (e, t, n) {
+                $(e).attr(t, n)
             },
             contentType: "application/x-www-form-urlencoded; charset=UTF-8",
             dataType: "text",
@@ -397,7 +515,7 @@
             return n
         }
     };
-    var internal = new InternalFactory(this);
+    var internal = new InternalFactory(rootWin);
     app._api = (new internal.CreateAPI).api;
-    this.Crystalize.begin("*")
+    rootWin.Crystalize.begin("*")
 }).call(this)

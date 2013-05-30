@@ -1,28 +1,20 @@
 ﻿var CrystalScript = {
-    "body": {
-        "type": " ",
-        "class": "xstal-master",
-        "data-xstal-isasync": "false",
-        "data-xstal-ajaxresult": "*alert",
-        "data-data-xstal-event": "click",
-        "data-xstal-add": "ServiceHandler/Handler1.ashx",
-        "data-xstal-ret": "datadata=attr=class",
-        "data-xstal-group": "body",
-        "data-xstal-group-master": "body",
-        "data-oxstal-function": "body"
-    },
     "selectionSch": {
-        "type": ".",
+        "__type__": ".",
         "class": "xstal-master",
-        "data-xstal-ajaxresult": "*in,.seniorityFulltimedrop option,append",
+        "data-xstal-ajaxresult": "*in,.seniorityFulltimedrop option,html=servertime;*in,body,prepend=datareceived;*alert,x=datareceived;*alert;*confirm,alert,confirm;",
         "data-xstal-event": "change",
         "data-xstal-add": "ServiceHandler/Handler1.ashx",
         "data-xstal-group-master": "a"
     },
     "SelectGroup": {
-        "type": "#",
+        "__type__": "#",
         "data-xstal-group": "a",
         "data-xstal-ret": "TypeOrder=text"
     }
 };
 
+
+var CrystalTest = {
+
+};

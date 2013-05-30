@@ -1,5 +1,6 @@
 ﻿var CrystalScript = {
-   
-
 
 };
+var CrystalMock = {
+
+}
