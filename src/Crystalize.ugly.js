@@ -52,24 +52,24 @@
                     }
                 }
                 if (t === true) {
-                    for (var n in CrystalMock) {
-                        for (var r in CrystalMock[n]) {
+                    for (var n in CRYSTAL_MOCKS) {
+                        for (var r in CRYSTAL_MOCKS[n]) {
                             if (r !== "__type__") {
-                                internal.globalSettings.addAttr(CrystalMock[n]["__type__"] + n, app._api.xstal_mocked.n, "true");
-                                internal.globalSettings.setMockUpTable(CrystalMock[n]["__type__"] + n, r, CrystalMock[n][r])
+                                internal.globalSettings.addAttr(CRYSTAL_MOCKS[n]["__type__"] + n, app._api.xstal_mocked.n, "true");
+                                internal.globalSettings.setMockUpTable(CRYSTAL_MOCKS[n]["__type__"] + n, r, CRYSTAL_MOCKS[n][r])
                             }
                         }
                     }
                 }
             };
             try {
-                if (CrystalScript) {
-                    if (Object.keys(CrystalScript).length !== 0) {
-                        app.script = CrystalScript;
+                if (CRYSTAL_SCRIPT) {
+                    if (Object.keys(CRYSTAL_SCRIPT).length !== 0) {
+                        app.script = CRYSTAL_SCRIPT;
                         if (runonce === false) {
                             runonce = true;
                             try {
-                                if (CrystalMock) {
+                                if (CRYSTAL_MOCKS) {
                                     t(app.script, true)
                                 }
                             } catch (n) {

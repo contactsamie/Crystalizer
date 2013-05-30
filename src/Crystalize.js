@@ -14,7 +14,6 @@
             return {
                 all: internal.globalSettings,
                 api: app._api
-
             };
         },
 
@@ -61,24 +60,37 @@
             var runScript = function (scr, test) {
                 for (var ea in scr) {
                     for (var eb in scr[ea]) {
+
                         if (eb !== "__type__") {
                             if (eb === "class") {
                                 $(scr[ea]["__type__"] + ea).addClass(scr[ea][eb]);
                             } else {
 
                                 internal.globalSettings.addAttr(scr[ea]["__type__"] + ea, eb, scr[ea][eb]);
+                                if (test === true) {// mock exist
+                                   
+                                    if (eb === app._api.xstal_mocked.n)
+                                    {
+                                        if (scr[ea][eb] !== app._api.xstal_mocked.v) {
+                                            var theDtoName = scr[ea][eb];
+                                            var atty="";
+                                            for (var eam in CRYSTAL_MOCKS) {
+                                                if (eam === theDtoName) {
+                                                    for (var ebm in CRYSTAL_MOCKS[eam]) {
+                                                        atty = atty + ebm + "=" + CRYSTAL_MOCKS[eam][ebm] + ";";
+                                                    }
+                                                }
+                                            }
+
+                                            internal.globalSettings.addAttr(scr[ea]["__type__"] + ea,app._api.xstal_mocked_prefix.n , atty);
+
+
+                                        }
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-                if (test === true) {
-                    for (var ea in CrystalMock) {
-                        for (var eb in CrystalMock[ea]) {
-                            if (eb !== "__type__") {
-                                internal.globalSettings.addAttr(CrystalMock[ea]["__type__"] + ea, app._api.xstal_mocked.n, "true");
-                                internal.globalSettings.setMockUpTable(CrystalMock[ea]["__type__"] + ea, eb, CrystalMock[ea][eb]);
-                            }
-                        }
+
                     }
                 }
 
@@ -86,13 +98,13 @@
           
             //determine if object exist to fix- todo
             try{
-                if (CrystalScript){
-                    if (Object.keys(CrystalScript).length !== 0) {
-                        app.script = CrystalScript;
+                if (CRYSTAL_SCRIPT){
+                    if (Object.keys(CRYSTAL_SCRIPT).length !== 0) {
+                        app.script = CRYSTAL_SCRIPT;
                         if (runonce === false) {
                             runonce = true;
                             try{
-                                if (CrystalMock) {
+                                if (CRYSTAL_MOCKS) {
                                     runScript(app.script,true);
                                 }
                             }catch(ft){
@@ -330,7 +342,12 @@
                 xstal_mocked: {
                     n: "xstal-mocked",
                     v: "false"
+                },
+                xstal_mocked_prefix: {
+                    n: "xstal-mockarg-",
+                    v: ""
                 }
+
 
 
             }
@@ -405,7 +422,45 @@
             },
             getMockFromMockUpTable:function(){
     
-    },
+            },
+           GetMockedDataFromMockTable: function (ref) {
+                re = {};
+                var x1 = internal.globalSettings.mockLookUpTable;
+                var tots = x1.length;
+                for (var it = 0; it < tots; it++) {
+                    if (!$(ref).hasClass(x1[it].r.replace(".", ""))) {
+
+                    }
+                    else if (!$(ref).attr("id") === (x1[it].r.replace("#", ""))) {
+
+                    } else {
+                        re[x1[it].n] = x1[it].v;
+                    }
+                }
+               
+                return re;
+            },
+            getMockedData: function (ref) {
+              var  re = "";
+
+              var attrib = $(ref).attr(app._api.xstal_mocked_prefix.n);
+
+              if (attrib === "") {
+                  throw "DTO does not exist for master with DTO specified as : " + $(ref).attr(app._api.xstal_mocked.n)
+              }
+
+                var attrSplit = attrib.split(";"); // bug, where mock has a ; inside
+                for (var ea in attrSplit) {
+                    if (re === "") {
+                        re = {};
+                    }
+                  var tent=  attrSplit[ea].split("=");
+                  re[tent[0]] = tent[1];
+                }
+
+               
+                return re;
+            },
             xmockajax: function (o, usereal,ref, IsSuccess, re) {
                 if (usereal === true) {
                     return $.ajax(o);
@@ -413,21 +468,8 @@
                 else {
 
                    // mockParameter
-
                     if (re === undefined) {
-                        re={};
-                     var x1=   internal.globalSettings.mockLookUpTable;
-                     var tots = x1.length;
-                     for (var it = 0; it < tots; it++)  {
-                         if (!$(ref).hasClass(x1[it].r.replace(".",""))) {
-
-                         }
-                         else if (!$(ref).attr("id") === (x1[it].r.replace("#", ""))) {
-
-                         } else {
-                             re[x1[it].n] = x1[it].v;
-                         }
-                     }
+                        re = internal.globalSettings.getMockedData(ref)
                     }
 
                     if (IsSuccess === true) {
@@ -485,9 +527,6 @@
                             }
 
                         }
-
-
-
 
                     }
                 }
@@ -565,7 +604,11 @@
                 }
             },
             addAttr: function (r, a, v) {
-                $(r).attr(a, v);
+                if (v === undefined) {
+                   return $(r).attr(a);
+                } else {
+                    $(r).attr(a, v);
+                }
             },
             contentType: "application/x-www-form-urlencoded; charset=UTF-8",
             dataType: "text",

@@ -1,6 +1,1 @@
-﻿var CrystalScript = {
-
-};
-var CrystalMock = {
-
-}
+﻿//removed mocks and test and script
