@@ -7,24 +7,24 @@ TEST("Veryfy that the dafault global setting is correct", function () {
 
     var setting = Crystalize.conf().all;
 
+    //OK(typeof setting.whenEventInvocking === "function", "when event invoking  must be a function by default( and always)");
+    //OK(typeof setting.whenEventInvocked === "function", "when event invoked  must be a function by default( and always)");
+    OK(typeof setting.wholeInternalHandler === "function", " when all start  must be a function by default( and always)"); //**
+    //OK(typeof setting.mockFunct === "function", "when all stop  must be a function by default( and always)"); //**
+    //OK( setting.XDlisteners !== undefined, "when each start  must be a function by default( and always)"); //**
+    //OK(typeof setting.deliverXD === "function", "when each stop  must be a function by default( and always)"); //**
+    OK(typeof setting.e_ === "function", "when mock set  must be a function by default( and always)"); //**
+    OK(typeof setting.runScript === "function", "when event made  must be a function by default( and always)"); //**
+
 
     OK(typeof setting !== "undefined", "Should always be able to get default setting");
-
     OK(setting.dontMakeJQAjaxCall === false, "dont make ajax call must be false by default");
     OK(setting.forceSynchronousOnAllAjaxCalls === false, "forcing assync on all ajax call  must be false by default");
     OK(setting.forceMockAllAjaxCalls === false, "forcing mock on all ajax call  must be false by default");
     OK(setting.execAllEventOnLoad === false, "execute all event on load  must be false by default");
     OK(typeof setting.resposeOfNoRequest !== "undefined", " response of no request  default  must be  set as expected (must be an empty object)");
     OK(typeof setting.MockingFxMethod === "function", "mocking framework method  must be a function by default( and always)");//mock ajax place holder
-    OK(typeof setting.whenEventInvocking === "function", "when event invoking  must be a function by default( and always)");
-    OK(typeof setting.whenEventInvocked === "function", "when event invoked  must be a function by default( and always)");
-    OK(typeof setting.whenAllStart === "function", " when all start  must be a function by default( and always)"); //**
-    OK(typeof setting.whenAllStop === "function", "when all stop  must be a function by default( and always)"); //**
-    OK(typeof setting.whenEachStart === "function", "when each start  must be a function by default( and always)"); //**
-    OK(typeof setting.whenEachStop === "function", "when each stop  must be a function by default( and always)"); //**
-    OK(typeof setting.whenMockSet === "function", "when mock set  must be a function by default( and always)"); //**
-    OK(typeof setting.whenEventMade === "function", "when event made  must be a function by default( and always)"); //**
-    OK(typeof setting.readyToAjaxcall === "function", "ready to ajax  default  must be a function by default( and always)"); //**
+    //OK(typeof setting.XDebug === "function", "ready to ajax  default  must be a function by default( and always)"); //**
     OK(setting.contentType === "application/x-www-form-urlencoded; charset=UTF-8", "ajax content type  default  must be  set as expected");
     OK(setting.dataType === "text", "ajax datatype  default must be set as expected");
     OK(setting.type === "POST", "type default  must be s set as expected");
@@ -77,7 +77,7 @@ TEST("Verify that the default api html values is correct", function () {
     OK(api.xstal_isasync.v === "false", "api parameter  value 'isassync' cannot be brocken brocken");
     OK(api.xstal_add.v === "/oxstal_add", "api parameter  value 'add'  cannot be brocken brocken");
     OK(api.xstal_function.v === "oxstal_function", "api parameter value  'function' cannot be brocken brocken");
-    OK(api.xstal_event.v === "click", "api parameter  value 'event' cannot be brocken brocken");
+    OK(api.xstal_event.v === "none", "api parameter  value 'event' cannot be brocken brocken");
     OK(api.xstal_querySeparator.v === "=", "api parameter  value 'query separator' cannot be brocken brocken");
     OK(api.xstal_test.v === "false", "api parameter  value 'test' cannot be brocken brocken");
     OK(api.xstal_group_separator.v === ",", "api parameter  value group separator  cannot be brocken brocken");
